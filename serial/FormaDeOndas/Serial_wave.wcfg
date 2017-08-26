@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="F:/Calazans/userCalazans/SerialInterface/serial_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="serial_tb" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_unsigned" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="17" />
+   <wvobject fp_name="/serial_tb/serial_inst/reset" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/clock" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clock</obj_property>
+      <obj_property name="ObjectShortName">clock</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider22" type="divider">
+      <obj_property name="label">MEF Autobaud</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">128 128 255</obj_property>
+      <obj_property name="TextColor">230 230 230</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/sreg" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">sreg</obj_property>
+      <obj_property name="ObjectShortName">sreg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/ctr0" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">ctr0[16:0]</obj_property>
+      <obj_property name="ObjectShortName">ctr0[16:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/counter" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">counter[13:0]</obj_property>
+      <obj_property name="ObjectShortName">counter[13:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/host_cycles" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">host_cycles[13:0]</obj_property>
+      <obj_property name="ObjectShortName">host_cycles[13:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider27" type="divider">
+      <obj_property name="label">Sender</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">#ff0000</obj_property>
+      <obj_property name="TextColor">230 230 230</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/txd" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">txd</obj_property>
+      <obj_property name="ObjectShortName">txd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/tx_av" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">tx_av</obj_property>
+      <obj_property name="ObjectShortName">tx_av</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/tx_data" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">tx_data[7:0]</obj_property>
+      <obj_property name="ObjectShortName">tx_data[7:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider31" type="divider">
+      <obj_property name="label">Receiver</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">#00ffff</obj_property>
+      <obj_property name="TextColor">230 230 230</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/rx_data" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">rx_data[7:0]</obj_property>
+      <obj_property name="ObjectShortName">rx_data[7:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/rx_busy" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rx_busy</obj_property>
+      <obj_property name="ObjectShortName">rx_busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/serial_clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">serial_clk</obj_property>
+      <obj_property name="ObjectShortName">serial_clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/rx_start" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rx_start</obj_property>
+      <obj_property name="ObjectShortName">rx_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/serial_tb/serial_inst/rxd" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rxd</obj_property>
+      <obj_property name="ObjectShortName">rxd</obj_property>
+   </wvobject>
+</wave_config>

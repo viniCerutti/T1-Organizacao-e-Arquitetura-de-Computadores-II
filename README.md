@@ -1,6 +1,8 @@
 ﻿# Links Úteis
 
 http://www.cs.uwm.edu/classes/cs315/Bacon/Lecture/HTML/ch14s03.html
+http://www.cs.umd.edu/class/sum2003/cmsc311/Notes/IO/mapped.html
+http://xenon.stanford.edu/~geksiong/cs61c-tb/week7.html
 
 # Ordem do endereçamento do Driver na memória
 

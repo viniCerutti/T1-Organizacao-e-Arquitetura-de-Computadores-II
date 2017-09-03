@@ -78,14 +78,19 @@ begin
 			when c => 
 			-- leitura no endereço de rx_busy
 				if ce ='0' and rw = '1' and address = x"10010010" then
-					-- pega o valor de rx_busy coloca no bit 0 do barramento de dados???
+				
 					if(data(0) = '0') then
 					-- se este valor ja esta em zero assume que tudo acabou 
 					State_next <= a;
+					else if (rx_busy = '0') then 	-- pega o valor de rx_busy coloca no bit 0 do barramento de dados??? 
+												 	-- seria isso??
+					data <= x"00000000";
+					State_next <= a;
+					else 
+						data <= x"00000001";
+						State_next <= c;
 					end if;
-					-- qual seria o else??
-					State_next <= a; -- só para compilar...
-					
+					end if;
 				end if;
 
 			--- faltou a logica de receber os dados do

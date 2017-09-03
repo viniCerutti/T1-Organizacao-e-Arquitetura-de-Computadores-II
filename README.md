@@ -8,11 +8,11 @@ http://www.cim.mcgill.ca/~langer/273/20-notes.pdf<br/>
 
 # Ordem do endereçamento do Driver na memória
 
-0xffff0000 - Tx_Data <br />
-0xffff0004 - tx_av <br />
-0xffff0008 - rx_data <br />
-0xffff000C - rx_start <br />
-0xffff0010 - rx_busy <br />
+0x10010000 - Tx_Data <br />
+0x10010004 - tx_av <br />
+0x10010008 - rx_data <br />
+0x1001000c - rx_start <br />
+0x10010010 - rx_busy <br />
 
 # O que precisa Fazer
 

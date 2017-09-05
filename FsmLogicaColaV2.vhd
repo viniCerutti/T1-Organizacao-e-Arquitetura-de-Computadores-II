@@ -8,7 +8,14 @@ use IEEE.std_logic_unsigned.all;
 -- 0x100100c - rx_start
 -- 0x1001010 - r_busy
 ---------------------------------------------
-
+-- data do periferico nao se salva na memoria
+-- apenas retorna este valor para data
+-- a FSM no estado inicial
+-- precisa mapear para todos os dados do periferico
+-- tipo mapear para os estado correspondentes na maquina
+-- e caso a instrucao nao for aquela naquele estado volta para o estado inical
+-- pois precisa  verificar se a instrucao é do periferico
+---------------------------------------------
 entity FsmLogicaCola is
     port(
     clock: in std_logic;   --                     
@@ -68,7 +75,7 @@ begin
 				if ce ='0' and rw = '1' and address = x"10010010" then
 					if(data(0) = '0') then
 					-- se este valor ja esta em zero assume que tudo acabou (ideia ney) ???
-					State_next <= c;
+					State_next <= d;
 					else if (rx_busy = '0') then 	-- pega o valor de rx_busy coloca no bit 0 do barramento de dados??? 
 												 	-- seria isso??
 					data <= x"00000000";
@@ -79,17 +86,35 @@ begin
 					end if;
 					end if;
 				end if;
-			when c =>
+				-- leitura no endereço de tx_av
+				if ce ='0' and rw ='1' and address = x"0x1001004" then
+					if(data(0) = '0') then
+						State_next <= a;
+					else if (tx_av = '0') then 
+						data <= x"00000000";
+						State_next <= a;
+					else 
+						data <= x"00000001";
+						State_next <= e;
+					end if;
+					end if;
+				end if;
+
+
+			when d =>
 				-- escrita no endereço rx_data
 				if ce = '0' and rw ='0' address = x"1001008" then
 					-- recebe este DATA e salvar em algum lugar
-					State_next = c;
-				-- tx_av ativo e no modo de leitura
-				else if ce ='0' and rw = '0' and address = x"10010004" and data(0) = '1' then
+					State_next = f;
+				
+				end if;
+			when e =>
+					-- tx_av ativo e no modo de leitura
+					if ce = '0' and rw = '1' address = x"1001000" then 
 					-- receber os dados da serial e mandar para a CPU
+					-- como seria desativar o tx_av????
 				end if;
-				end if;
-			when d =>
+			when f =>
 				-- rx_start ativo e no modo de escrita
 				if ce ='0' and rw = '0' and address = x"1001000c" and data(0) = '1' then -- seria isso??
 					rx_start<= '1';
@@ -98,8 +123,6 @@ begin
 				end if;
 			
 
-			-- como fazer para para avisar a cpu que tem dado ou seja
-			-- se tx_av = '1' onde que coloco essa lógica??
 
 
 			when others => 

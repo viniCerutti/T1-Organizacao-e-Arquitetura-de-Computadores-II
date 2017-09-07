@@ -8,6 +8,10 @@ use IEEE.std_logic_unsigned.all;
 -- 0x10008003  - rx_start
 -- 0x10008004  - r_busy
 ---------------------------------------------
+-- TESTADOS
+-- ENDEREÇOS DIFERENTES DO PERIFERICO SEGUIDAMENTE
+-- rx_busy = '0' data = '0x0000000'
+---------------------------------------------
 entity FsmLogicaCola is
     port(
     clock: in std_logic;   --                     
@@ -35,10 +39,12 @@ architecture FsmLogicaCola of FsmLogicaCola is
 	signal ce_Serial : std_logic;
 	signal tx_avDisponivel : std_logic;
 	signal tx_dataReg, rx_dataReg : std_logic_vector (7 downto 0);
+	signal auxData : std_logic_vector (31 downto 0);
 
 begin
+	
 	ce_Serial <= '1' when (ce='0' and address >= x"10008000" and address <= x"10008004") else '0';
-	mem_ce <= '0' when (ce_Serial = '1') else '1';
+	mem_ce <= '1' when (ce_Serial = '1') else '0'; -- bug corrigido mem_ce tava invertido os sinais
 
 	process (reset, clock)
 	begin
@@ -57,15 +63,15 @@ begin
 					if (ce_Serial ='1') then -- que dizer que não estou mexendo com a memoria e sim com periferico
 					-- leitura do endereço rx_busy
 						if (address = x"10008004" and rw = '1') then
-							
+						-- CUIDADO POSSIVELMENTE BUG NA ORDEM DESTES IF'S
 							if (rx_busy = '0') then 
-								data <= x"00000000";
+								auxData <= x"00000000";
 								State_next <= b;
 							else 
-								data <= x"00000001";
+								auxData <= x"00000001";
 								State_next <=  a;
 							end if;
-							if(data(0) = '0') then
+							else if(data(0) = '0') then
 								State_next <=  a;
 							end if;
 						end if;
@@ -73,14 +79,14 @@ begin
 					-- leitura do endereço tx_av
 						if (address = x"10008001" and rw = '1') then
 							if(tx_av = '1') then
-								data <= x"00000001";
+								auxData <= x"00000001";
 								tx_dataReg <= tx_data;
 								tx_avDisponivel <= '1';
 								State_next <=  c;
-							end if;
 							else 
-								data <= x"00000000";
+								auxData <= x"00000000";
 								State_next <=  a;
+							end if;
 						end if;
 
 					else State_next <= a; -- to mexendo com a memoria então permance neste estado
@@ -98,7 +104,7 @@ begin
 					-- Leitura no endereço tx_data
 						 if (ce_Serial = '1' and address = x"10008000" and rw = '0') then
 						 	if(tx_avDisponivel = '1') then
-						 		data <= x"000000"&tx_dataReg;
+						 		auxData <= x"000000"&tx_dataReg;
 						 	else 
 						 		State_next <= c;
 						 	end if;
@@ -107,7 +113,7 @@ begin
 					-- -- escrita no endereço rx_start
 						if (ce_Serial = '1' and address = x"10008003" and rw = '0' and data(0) = '1') then
 							rx_start <= '1';
-							data <= x"000000"&rx_dataReg;
+							rx_data <= rx_dataReg; -- corrigido bug antes estava com data
 							State_next <= a;
 						else State_next <= d;
 						end if;
@@ -115,4 +121,6 @@ begin
 					State_next <= a;
 		end case;
     end process;
+   data <= auxData when (ce_Serial='1' and rw ='1') else (others=>'Z');  -- corrigido bug com DATA assim não atrapalha entrada e saida de dados
+   																		 -- corrigido a saida saia para quando leitura quando escrita
 end FsmLogicaCola;

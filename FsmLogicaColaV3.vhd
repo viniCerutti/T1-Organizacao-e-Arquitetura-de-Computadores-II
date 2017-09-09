@@ -14,7 +14,7 @@ use IEEE.std_logic_unsigned.all;
 -- rx_data, rx_start
 -- tx_av, tx_data = tx_disponivel = '1'
 
--- se ligar com a instrucao SB
+-- se ligar com a instrucao SBm
 ---------------------------------------------
 entity FsmLogicaCola is
     port(
@@ -48,7 +48,8 @@ architecture FsmLogicaCola of FsmLogicaCola is
 begin
 	
 	ce_Serial <= '1' when (ce='0' and address >= x"10008000" and address <= x"10008004") else '0';
-	mem_ce <= '1' when (ce_Serial = '1') else '0'; -- bug corrigido 07/09 mem_ce tava invertido os sinais
+	mem_ce <= '1' when (ce_Serial = '1' or ce='1') else '0'; -- bug corrigido 07/09 mem_ce tava invertido os sinais
+															 -- bug corrigido 09/09 mem_ce estaba habilitado quando não era sw ou lw
 
 	process (reset, clock)
 	begin
@@ -69,7 +70,7 @@ begin
 						if (address = x"10008004" and rw = '1') then
 						-- CUIDADO POSSIVELMENTE BUG NA ORDEM DESTES IF'S 07/09
 							if (rx_busy = '0') then 
-								auxData <= x"00000000";
+								auxData <= x"00000010";
 								State_next <= b;
 							else 
 								auxData <= x"00000001";

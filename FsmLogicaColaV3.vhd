@@ -10,7 +10,11 @@ use IEEE.std_logic_unsigned.all;
 ---------------------------------------------
 -- TESTADOS
 -- ENDEREÇOS DIFERENTES DO PERIFERICO SEGUIDAMENTE
--- rx_busy = '0' data = '0x0000000'
+-- rx_busy
+-- rx_data, rx_start
+-- tx_av, tx_data = tx_disponivel = '1'
+
+-- se ligar com a instrucao SB
 ---------------------------------------------
 entity FsmLogicaCola is
     port(
@@ -44,7 +48,7 @@ architecture FsmLogicaCola of FsmLogicaCola is
 begin
 	
 	ce_Serial <= '1' when (ce='0' and address >= x"10008000" and address <= x"10008004") else '0';
-	mem_ce <= '1' when (ce_Serial = '1') else '0'; -- bug corrigido mem_ce tava invertido os sinais
+	mem_ce <= '1' when (ce_Serial = '1') else '0'; -- bug corrigido 07/09 mem_ce tava invertido os sinais
 
 	process (reset, clock)
 	begin
@@ -63,7 +67,7 @@ begin
 					if (ce_Serial ='1') then -- que dizer que não estou mexendo com a memoria e sim com periferico
 					-- leitura do endereço rx_busy
 						if (address = x"10008004" and rw = '1') then
-						-- CUIDADO POSSIVELMENTE BUG NA ORDEM DESTES IF'S
+						-- CUIDADO POSSIVELMENTE BUG NA ORDEM DESTES IF'S 07/09
 							if (rx_busy = '0') then 
 								auxData <= x"00000000";
 								State_next <= b;
@@ -102,9 +106,12 @@ begin
 						end if ;
 				when c =>
 					-- Leitura no endereço tx_data
-						 if (ce_Serial = '1' and address = x"10008000" and rw = '0') then
+						 if (ce_Serial = '1' and address = x"10008000" and rw = '1') then -- corrigido 08/09 rw = '0'
 						 	if(tx_avDisponivel = '1') then
 						 		auxData <= x"000000"&tx_dataReg;
+						 		tx_avDisponivel <= '0'; -- corrigido 08/09 faltou esta linha
+						 		State_next <= a;	  -- corrigido 08/09 faltou esta linha -- VERIFICAR SE VOLTA PARA 
+						 							  -- O INICIO DEPOIS DESTE ESTADO 
 						 	else 
 						 		State_next <= c;
 						 	end if;
@@ -113,7 +120,7 @@ begin
 					-- -- escrita no endereço rx_start
 						if (ce_Serial = '1' and address = x"10008003" and rw = '0' and data(0) = '1') then
 							rx_start <= '1';
-							rx_data <= rx_dataReg; -- corrigido bug antes estava com data
+							rx_data <= rx_dataReg; -- corrigido 07/09 bug antes estava com data
 							State_next <= a;
 						else State_next <= d;
 						end if;
@@ -121,6 +128,6 @@ begin
 					State_next <= a;
 		end case;
     end process;
-   data <= auxData when (ce_Serial='1' and rw ='1') else (others=>'Z');  -- corrigido bug com DATA assim não atrapalha entrada e saida de dados
-   																		 -- corrigido a saida saia para quando leitura quando escrita
+   data <= auxData when (ce_Serial='1' and rw ='1') else (others=>'Z');  -- corrigido 07/09 bug com DATA assim não atrapalha entrada e saida de dados
+   																		 -- corrigido 07/09 a saida saia para quando leitura quando escrita
 end FsmLogicaCola;

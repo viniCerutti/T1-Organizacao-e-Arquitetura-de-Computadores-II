@@ -10,34 +10,34 @@
 -- This testbench employs two memories, implying a HARVARD organization
 --
 -- Changes:
---	16/05/2012 (Ney Calazans)
---		- Corrected bug in memory filling during reset. The instruction
---		memory fill process, makes the processor produce "ce" signals to 
---		memory which ended up by filling data memory with rubbish at
---		the same time. To solve this, the first line of the data memory
---		Dce control signal generation was changed from 
---			--	ce='1' or go_d='1'	 to 
---			-- (ce='1' and rstCPU/='1') or go_d='1'
---		- Also, there was a problem with the data memory write operation in
---		monocycle MIPS implementations: when multiple SW instructions
---		were issued one after the other, the write operation was executed
---		in two sets of memory positions at once after the first SW. To
---		solve this the data signal was removed from the memory write
---		process sensitivity list.
---	10/10/2015 (Ney Calazans)
---		- Signal bw from memory set to '1', since the CPU
---		does not generate it anymore.
---	28/10/2016 (Ney Calazans)
---		- Also, regX defs were changed to wiresX, to improve
---		code readability.
---	02/06/2017 (Ney Calazans) - bugfix
---		- tmp_address changed to int_address in the memory definition
---		-IN the definition of the memory read/write processes,
---		  CONV_INTEGER(low_address+3)<=MEMORY_SIZE was changed to
---		  CONV_INTEGER(low_address)<=MEMORY_SIZE-3
--- 		This avoids an error that freezes the simulation when the
---		   ALU contains a large number (>65533) in its output 
---		   immediately before an LW or SW instruction.
+--  16/05/2012 (Ney Calazans)
+--    - Corrected bug in memory filling during reset. The instruction
+--    memory fill process, makes the processor produce "ce" signals to 
+--    memory which ended up by filling data memory with rubbish at
+--    the same time. To solve this, the first line of the data memory
+--    Dce control signal generation was changed from 
+--      --  ce='1' or go_d='1'   to 
+--      -- (ce='1' and rstCPU/='1') or go_d='1'
+--    - Also, there was a problem with the data memory write operation in
+--    monocycle MIPS implementations: when multiple SW instructions
+--    were issued one after the other, the write operation was executed
+--    in two sets of memory positions at once after the first SW. To
+--    solve this the data signal was removed from the memory write
+--    process sensitivity list.
+--  10/10/2015 (Ney Calazans)
+--    - Signal bw from memory set to '1', since the CPU
+--    does not generate it anymore.
+--  28/10/2016 (Ney Calazans)
+--    - Also, regX defs were changed to wiresX, to improve
+--    code readability.
+--  02/06/2017 (Ney Calazans) - bugfix
+--    - tmp_address changed to int_address in the memory definition
+--    -IN the definition of the memory read/write processes,
+--      CONV_INTEGER(low_address+3)<=MEMORY_SIZE was changed to
+--      CONV_INTEGER(low_address)<=MEMORY_SIZE-3
+--    This avoids an error that freezes the simulation when the
+--       ALU contains a large number (>65533) in its output 
+--       immediately before an LW or SW instruction.
 -------------------------------------------------------------------------
 
 library IEEE;
@@ -57,8 +57,8 @@ package aux_functions is
    constant TAM_LINHA : integer := 200;
    
    function CONV_VECTOR( letra : string(1 to TAM_LINHA);  pos: integer ) return std_logic_vector;
-	
-	procedure readFileLine(file in_file: TEXT; outStrLine: out string);
+  
+  procedure readFileLine(file in_file: TEXT; outStrLine: out string);
    
 end aux_functions;
 
@@ -93,30 +93,30 @@ package body aux_functions is
   end CONV_VECTOR;
 
   procedure readFileLine(file in_file: TEXT; 
-					      outStrLine: out string) is
-		
-		variable localLine: line;
-		variable localChar:  character;
-		variable isString: 	boolean;
-			
-	begin
-				
-		 readline(in_file, localLine);
+                outStrLine: out string) is
+    
+    variable localLine: line;
+    variable localChar:  character;
+    variable isString:  boolean;
+      
+  begin
+        
+     readline(in_file, localLine);
 
-		 for i in outStrLine'range loop
-			 outStrLine(i) := ' ';
-		 end loop;   
+     for i in outStrLine'range loop
+       outStrLine(i) := ' ';
+     end loop;   
 
-		 for i in outStrLine'range loop
-			read(localLine, localChar, isString);
-			outStrLine(i) := localChar;
-			if not isString then -- found end of line
-				exit;
-			end if;   
-		 end loop; 
-						 
-	end readFileLine;
-	
+     for i in outStrLine'range loop
+      read(localLine, localChar, isString);
+      outStrLine(i) := localChar;
+      if not isString then -- found end of line
+        exit;
+      end if;   
+     end loop; 
+             
+  end readFileLine;
+  
 end aux_functions;     
 
 --------------------------------------------------------------------------
@@ -196,13 +196,17 @@ architecture cpu_tb of cpu_tb is
            go_i, go_d, ce, rw, bw: std_logic;
     
     signal mem_ce :  std_logic;
+
+    signal tx_data,rx_data: std_logic_vector (7 downto 0);  
+    signal tx_av,rx_busy, rx_start:  std_logic;                                      
     
-    file ARQ : TEXT open READ_MODE is "textMips.txt";
+    file ARQ : TEXT open READ_MODE is "textMips2.txt";
  
 begin
     
-     Logica_cola: entity work.LogicaCola   
-              port map (ce => Dce_n,address=>Dadress, mem_ce=>mem_ce, rw=>rw, clock=>ck, reset=>rstCPU);
+     Logica_cola: entity work.FsmLogicaCola   
+              port map (ce => Dce_n,address=>Dadress, mem_ce=>mem_ce, rw=>rw, clock=>ck, reset=>rstCPU, tx_data=>tx_data,
+      rx_data=>rx_data, tx_av=> tx_av, rx_busy=>rx_busy,rx_start=>rx_start, data => Ddata);
     
     Data_mem:  entity work.RAM_mem 
                generic map( START_ADDRESS => x"10010000" )
@@ -212,7 +216,9 @@ begin
                generic map( START_ADDRESS => x"00400000" )
                port map (ce_n=>Ice_n, we_n=>Iwe_n, oe_n=>Ioe_n, bw=>'1', address=>Iadress, data=>Idata);
                
-               
+     rx_busy <= '0' when (Dadress = x"10008004" or  Dadress = x"10008003")  else '1';    
+     tx_av <= '1' when (Dadress = x"10008001")  else '0';   
+     --tx_data <= x"0c"; 
    
     -- data memory signals --------------------------------------------------------
     Dce_n <= '0' when (ce='1' and rstCPU/='1') or go_d='1' else '1'; -- Bug corrected here in 16/05/2012
@@ -286,7 +292,7 @@ begin
         while NOT (endfile(ARQ)) loop    -- INCIO DA LEITURA DO ARQUIVO CONTENDO INSTRUO E DADOS -----
             --readline(ARQ, ARQ_LINE);      
             --read(ARQ_LINE, line_arq(1 to  ARQ_LINE'length) );
-				readFileLine(ARQ, line_arq);
+        readFileLine(ARQ, line_arq);
                         
             if line_arq(1 to 12)="Text Segment" then 
                    code:=true;                     -- code 

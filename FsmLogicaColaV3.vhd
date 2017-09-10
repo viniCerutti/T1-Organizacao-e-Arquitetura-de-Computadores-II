@@ -41,7 +41,7 @@ architecture FsmLogicaCola of FsmLogicaCola is
 	type State_type is (a,b,c,d);
 	signal State_next, State : State_type;
 	signal ce_Serial : std_logic;
-	signal tx_avDisponivel : std_logic;
+	signal tx_dado_ja_lido : std_logic := '0';
 	signal tx_dataReg, rx_dataReg : std_logic_vector (7 downto 0);
 	signal auxData : std_logic_vector (31 downto 0);
 
@@ -83,12 +83,12 @@ begin
 
 					-- leitura do endereço tx_av
 						if (address = x"10008001" and rw = '1') then
-							if(tx_av = '1') then
+							if(tx_av = '1' and tx_dado_ja_lido = '0') then -- flag de tx_dado_ja_lido
 								auxData <= x"00000001";
 								tx_dataReg <= tx_data;
-								tx_avDisponivel <= '1';
 								State_next <=  c;
 							else 
+								tx_dado_ja_lido <= '0';
 								auxData <= x"00000000";
 								State_next <=  a;
 							end if;
@@ -108,14 +108,12 @@ begin
 				when c =>
 					-- Leitura no endereço tx_data
 						 if (ce_Serial = '1' and address = x"10008000" and rw = '1') then -- corrigido 08/09 rw = '0'
-						 	if(tx_avDisponivel = '1') then
 						 		auxData <= x"000000"&tx_dataReg;
-						 		tx_avDisponivel <= '0'; -- corrigido 08/09 faltou esta linha
+						 		tx_dado_ja_lido <= '1'; -- corrigido 08/09 faltou esta linha
 						 		State_next <= a;	  -- corrigido 08/09 faltou esta linha -- VERIFICAR SE VOLTA PARA 
 						 							  -- O INICIO DEPOIS DESTE ESTADO 
-						 	else 
-						 		State_next <= c;
-						 	end if;
+						 else 
+						 	State_next <= c;		-- se não for uma Leitura no endereço tx_data					  
 						 end if;
 				when d => 
 					-- -- escrita no endereço rx_start

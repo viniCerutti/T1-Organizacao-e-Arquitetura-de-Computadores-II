@@ -70,7 +70,7 @@ begin
 						if (address = x"10008004" and rw = '1') then
 						-- CUIDADO POSSIVELMENTE BUG NA ORDEM DESTES IF'S 07/09
 							if (rx_busy = '0') then 
-								auxData <= x"00000010";
+								auxData <= x"00000000";
 								State_next <= b;
 							else 
 								auxData <= x"00000001";

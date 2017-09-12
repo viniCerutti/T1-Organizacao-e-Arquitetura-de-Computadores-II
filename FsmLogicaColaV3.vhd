@@ -68,15 +68,11 @@ begin
 					if (ce_Serial ='1') then -- que dizer que não estou mexendo com a memoria e sim com periferico
 					-- leitura do endereço rx_busy
 						if (address = x"10008004" and rw = '1') then
-						-- CUIDADO POSSIVELMENTE BUG NA ORDEM DESTES IF'S 07/09
 							if (rx_busy = '0') then 
 								auxData <= x"00000000";
 								State_next <= b;
 							else 
 								auxData <= x"00000001";
-								State_next <=  a;
-							end if;
-							else if(data(0) = '0') then
 								State_next <=  a;
 							end if;
 						end if;
@@ -100,10 +96,9 @@ begin
 				when b => 
 					-- escrita no endereço rx_data
 						if (ce_Serial = '1' and address = x"10008002" and rw = '0') then
-							rx_dataReg <= data(7 downto 0);
-							State_next <=  d;
-						else 
-							State_next <= b;
+							rx_data <= data(7 downto 0);
+							rx_start <= '1';
+							State_next <= d;
 						end if ;
 				when c =>
 					-- Leitura no endereço tx_data
@@ -116,12 +111,22 @@ begin
 						 	State_next <= c;		-- se não for uma Leitura no endereço tx_data					  
 						 end if;
 				when d => 
-					-- -- escrita no endereço rx_start
-						if (ce_Serial = '1' and address = x"10008003" and rw = '0' and data(0) = '1') then
-							rx_start <= '1';
-							rx_data <= rx_dataReg; -- corrigido 07/09 bug antes estava com data
-							State_next <= a;
-						else State_next <= d;
+					-- verificar se aquele dado já foi EVIADO POR COMPLETO PARA O PERIFERICO
+						if (ce_Serial = '1' and address = x"10008004" and rw = '1') then
+							if (rx_busy = '0') then 
+								auxData <= x"00000000";
+								rx_start <='0';
+								State_next <= b;
+							else 
+								auxData <= x"00000001";
+								State_next <=  d;
+							end if;
+						else if (rx_busy = '0') then -- é assim para outras instrucoes?
+								rx_start <='0';
+								State_next <= a;
+							else 
+								State_next <=  d;
+							end if;
 						end if;
 				when others => 
 					State_next <= a;

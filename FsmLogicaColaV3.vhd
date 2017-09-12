@@ -99,7 +99,9 @@ begin
 							rx_data <= data(7 downto 0);
 							rx_start <= '1';
 							State_next <= d;
+						else State_next <= b;
 						end if ;
+
 				when c =>
 					-- Leitura no endereço tx_data
 						 if (ce_Serial = '1' and address = x"10008000" and rw = '1') then -- corrigido 08/09 rw = '0'

@@ -1,87 +1,83 @@
--------------------------------------------------------------------------
---  TEST_BENCH PARA SIMULACAO DA SERIAL 
---  Simular por 100 microssegundos
--------------------------------------------------------------------------
 
-library ieee;
-use IEEE.std_logic_1164.all;
-use IEEE.std_logic_arith.all;
-use IEEE.std_logic_unsigned.all;          
+Library ieee;
+Use IEEE.std_logic_1164.All;
+Use IEEE.std_logic_arith.All;
+Use IEEE.std_logic_unsigned.All; 
 
-entity mySerialTB is
-	port (
-		 clock: in std_logic;                    
-    	 reset: in std_logic;  
-    	 rxd: in std_logic; 
-    	 txd: out std_logic
-
+Entity mySerialTB Is
+	Port (
+		clock : In std_logic; 
+		reset : In std_logic; 
+		rxd : In std_logic;
+		txd : Out std_logic
 	);
-end mySerialTB;
+End mySerialTB;
 
-architecture mySerialTB of mySerialTB is
+Architecture mySerialTB Of mySerialTB Is
 
-	type State_typeReceiver is (a,b,c,d);
-	signal State_nextReceiver, StateReceiver : State_typeReceiver;
+	Type State_type Is (a, b, c, d, e);
+	Signal State : State_type;
 
-	type State_typeSend is (a1,b1,c1,d1);
-	signal State_nextSend, StateSend  : State_typeSend;
+	Signal result : std_logic_vector(9 Downto 0);
 
-	signal contBits : std_logic_vector(7 downto 0);
-	signal contVetor : std_logic_vector(7 downto 0);
-
-    type data_memInf is array(0 to 1) of std_logic_vector(7 downto 0);
-	signal memInf : data_memInf := (others => (others => '0'));
-
-begin
-	process (reset, clock)
-	begin
-		if (reset = '1') then
-			contBits <= x"08";
-			contVetor <= x"00";
-			StateReceiver <= a;
-			StateSend <= a1;
-		elsif (clock'EVENT and clock = '1') then
-			StateReceiver <= State_nextReceiver;
-			StateSend <= State_nextSend;
-		end if;
-	end process;
-
-
-	process (StateReceiver)
-	begin
-		case StateReceiver is
-		when a =>
-			contBits <= x"08";
-			contVetor <= x"00";
-			if(rxd = '0') then
-				State_nextReceiver <= b;
-			else State_nextReceiver <= a;
-			end if;
-		when b =>
-			contBits <= contBits - x"01";
-			memInf(CONV_INTEGER(contVetor))(CONV_INTEGER(contBits)) <= rxd;
-			if (contVetor <= x"01") then
-				State_nextReceiver <= c;
-			else State_nextReceiver <= b;
-			end if;
-		when c =>
-			if(rxd = '1') then 
-				State_nextReceiver <= a;
-				contVetor <= contVetor + x"01";
-			else State_nextReceiver <= c;
-			end if;
-		when others => 
-					State_nextReceiver <= a;
-		end case;
-	end process;
-
-
-	process (StateSend)
-	begin
-		case StateSend is
-		when others => 
-					State_nextSend <= a1;
-		end case;
-	end process;
-
-end mySerialTB;
+	Type data_memInf Is Array(0 To 1) Of std_logic_vector(7 Downto 0);
+	Signal memInf : data_memInf := (Others => (Others => '0'));
+	Signal contBitsReceiver, contBitsSend : std_logic_vector (7 Downto 0);
+	Signal contVetor : std_logic_vector (7 Downto 0) := "00000000";
+Begin
+	Process (reset, clock)
+	Begin
+		If (reset = '1') Then
+			result <= "0000000000";
+			contVetor<=x"00";
+			State <= a;
+		Elsif (clock'EVENT And clock = '1') Then
+			Case State Is
+				When a => 
+					If (contVetor /= x"10") Then
+						contBitsReceiver <= x"08";
+						State <= b;
+					Else
+						contBitsSend <= x"08";
+						result(8 Downto 1) <= memInf(0)(7 Downto 0) + memInf(1)(7 Downto 0);
+						result(0) <= '1';
+						State <= e;
+					End If;
+				When b => 
+					If (rxd = '0') Then
+						State <= c;
+					Else
+						State <= b; 
+					End If;
+				When c => 
+					If (contBitsReceiver > 1) Then
+						contBitsReceiver <= contBitsReceiver - x"01";
+						memInf(CONV_INTEGER(contVetor)) <= rxd & memInf(CONV_INTEGER(contVetor))(7 Downto 1);
+						State <= c;
+					Else
+						State <= d;
+					End If;
+				When d => 
+					If (rxd /= '0') Then
+						contVetor <= contVetor + x"01";
+						State <= a;
+					Else
+						State <= d;
+					End If;
+				When e => 
+					If (contBitsSend >= x"01") Then
+						contBitsSend <= contBitsSend - x"01";
+						txd <= result(CONV_INTEGER(contBitsSend));
+ 
+						State <= e;
+					Else
+						txd <= result(CONV_INTEGER(contBitsSend));
+						contVetor <= x"00";
+						State <= a;
+					End If;
+				When Others => 
+					State <= a;
+			End Case;
+		End If;
+	End Process;
+End mySerialTB;

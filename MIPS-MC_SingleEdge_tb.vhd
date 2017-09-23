@@ -10,34 +10,34 @@
 -- This testbench employs two memories, implying a HARVARD organization
 --
 -- Changes:
---  16/05/2012 (Ney Calazans)
---    - Corrected bug in memory filling during reset. The instruction
---    memory fill process, makes the processor produce "ce" signals to 
---    memory which ended up by filling data memory with rubbish at
---    the same time. To solve this, the first line of the data memory
---    Dce control signal generation was changed from 
---      --  ce='1' or go_d='1'   to 
---      -- (ce='1' and rstCPU/='1') or go_d='1'
---    - Also, there was a problem with the data memory write operation in
---    monocycle MIPS implementations: when multiple SW instructions
---    were issued one after the other, the write operation was executed
---    in two sets of memory positions at once after the first SW. To
---    solve this the data signal was removed from the memory write
---    process sensitivity list.
---  10/10/2015 (Ney Calazans)
---    - Signal bw from memory set to '1', since the CPU
---    does not generate it anymore.
---  28/10/2016 (Ney Calazans)
---    - Also, regX defs were changed to wiresX, to improve
---    code readability.
---  02/06/2017 (Ney Calazans) - bugfix
---    - tmp_address changed to int_address in the memory definition
---    -IN the definition of the memory read/write processes,
---      CONV_INTEGER(low_address+3)<=MEMORY_SIZE was changed to
---      CONV_INTEGER(low_address)<=MEMORY_SIZE-3
---    This avoids an error that freezes the simulation when the
---       ALU contains a large number (>65533) in its output 
---       immediately before an LW or SW instruction.
+--	16/05/2012 (Ney Calazans)
+--		- Corrected bug in memory filling during reset. The instruction
+--		memory fill process, makes the processor produce "ce" signals to 
+--		memory which ended up by filling data memory with rubbish at
+--		the same time. To solve this, the first line of the data memory
+--		Dce control signal generation was changed from 
+--			--	ce='1' or go_d='1'	 to 
+--			-- (ce='1' and rstCPU/='1') or go_d='1'
+--		- Also, there was a problem with the data memory write operation in
+--		monocycle MIPS implementations: when multiple SW instructions
+--		were issued one after the other, the write operation was executed
+--		in two sets of memory positions at once after the first SW. To
+--		solve this the data signal was removed from the memory write
+--		process sensitivity list.
+--	10/10/2015 (Ney Calazans)
+--		- Signal bw from memory set to '1', since the CPU
+--		does not generate it anymore.
+--	28/10/2016 (Ney Calazans)
+--		- Also, regX defs were changed to wiresX, to improve
+--		code readability.
+--	02/06/2017 (Ney Calazans) - bugfix
+--		- tmp_address changed to int_address in the memory definition
+--		-IN the definition of the memory read/write processes,
+--		  CONV_INTEGER(low_address+3)<=MEMORY_SIZE was changed to
+--		  CONV_INTEGER(low_address)<=MEMORY_SIZE-3
+-- 		This avoids an error that freezes the simulation when the
+--		   ALU contains a large number (>65533) in its output 
+--		   immediately before an LW or SW instruction.
 -------------------------------------------------------------------------
 
 library IEEE;
@@ -57,8 +57,8 @@ package aux_functions is
    constant TAM_LINHA : integer := 200;
    
    function CONV_VECTOR( letra : string(1 to TAM_LINHA);  pos: integer ) return std_logic_vector;
-  
-  procedure readFileLine(file in_file: TEXT; outStrLine: out string);
+	
+	procedure readFileLine(file in_file: TEXT; outStrLine: out string);
    
 end aux_functions;
 
@@ -93,30 +93,30 @@ package body aux_functions is
   end CONV_VECTOR;
 
   procedure readFileLine(file in_file: TEXT; 
-                outStrLine: out string) is
-    
-    variable localLine: line;
-    variable localChar:  character;
-    variable isString:  boolean;
-      
-  begin
-        
-     readline(in_file, localLine);
+					      outStrLine: out string) is
+		
+		variable localLine: line;
+		variable localChar:  character;
+		variable isString: 	boolean;
+			
+	begin
+				
+		 readline(in_file, localLine);
 
-     for i in outStrLine'range loop
-       outStrLine(i) := ' ';
-     end loop;   
+		 for i in outStrLine'range loop
+			 outStrLine(i) := ' ';
+		 end loop;   
 
-     for i in outStrLine'range loop
-      read(localLine, localChar, isString);
-      outStrLine(i) := localChar;
-      if not isString then -- found end of line
-        exit;
-      end if;   
-     end loop; 
-             
-  end readFileLine;
-  
+		 for i in outStrLine'range loop
+			read(localLine, localChar, isString);
+			outStrLine(i) := localChar;
+			if not isString then -- found end of line
+				exit;
+			end if;   
+		 end loop; 
+						 
+	end readFileLine;
+	
 end aux_functions;     
 
 --------------------------------------------------------------------------
@@ -174,7 +174,106 @@ begin
    end process;   
 
 end RAM_mem;
+-------------------------------------------------------------------------
+--  peripheral module
+-------------------------------------------------------------------------
 
+Library ieee;
+Use IEEE.std_logic_1164.All;
+Use IEEE.std_logic_arith.All;
+Use IEEE.std_logic_unsigned.All; 
+
+Entity periferico Is
+  Port (
+    clock : In std_logic; 
+    reset : In std_logic; 
+    rxd : In std_logic;
+    txd : Out std_logic
+  );
+End periferico;
+
+Architecture periferico Of periferico Is
+
+  Type State_type Is (a, b, c, d, e);
+  Signal State : State_type;
+
+  Signal result : std_logic_vector(9 Downto 0);
+
+  Type data_memInf Is Array(0 To 1) Of std_logic_vector(7 Downto 0);
+  Signal memInf : data_memInf := (Others => (Others => '0'));
+  Signal contBitsReceiver, contBitsSend : std_logic_vector (7 Downto 0);
+  Signal contVetor : std_logic_vector (7 Downto 0) := "00000000";
+  signal enviar_dado_sinc : std_logic := '1';
+Begin
+  Process (reset, clock)
+  Begin
+    If (reset = '1') Then
+      result <= "0000000000";
+      contVetor<=x"00";
+      State <= a;
+    Elsif (clock'EVENT And clock = '1') Then
+      Case State Is
+        When a => 
+          If(enviar_dado_sinc ='1') Then
+            contBitsSend <= x"08";
+            txd <= '1';
+            result<= "0101010101";
+            State <= e;
+
+          else If (contVetor /= x"10") Then
+            contBitsReceiver <= x"08";
+            State <= b;
+          Else
+            contBitsSend <= x"08";
+            result(8 Downto 1) <= memInf(0)(7 Downto 0) + memInf(1)(7 Downto 0);
+            result(0) <= '1';
+            State <= e;
+          End If;
+
+          end if;
+
+        When b => 
+          If (rxd = '0') Then
+            State <= c;
+          Else
+            State <= b; 
+          End If;
+        When c => 
+          If (contBitsReceiver > 1) Then
+            contBitsReceiver <= contBitsReceiver - x"01";
+            memInf(CONV_INTEGER(contVetor)) <= rxd & memInf(CONV_INTEGER(contVetor))(7 Downto 1);
+            State <= c;
+          Else
+            State <= d;
+          End If;
+        When d => 
+          If (rxd /= '0') Then
+            contVetor <= contVetor + x"01";
+            State <= a;
+          Else
+            State <= d;
+          End If;
+        When e => 
+          if(enviar_dado_sinc ='1') Then
+            enviar_dado_sinc <='0';
+          end if;
+
+          If (contBitsSend >= x"01") Then
+            contBitsSend <= contBitsSend - x"01";
+            txd <= result(CONV_INTEGER(contBitsSend));
+ 
+            State <= e;
+          Else
+            txd <= result(CONV_INTEGER(contBitsSend));
+            contVetor <= x"00";
+            State <= a;
+          End If;
+        When Others => 
+          State <= a;
+      End Case;
+    End If;
+  End Process;
+End periferico;
 -------------------------------------------------------------------------
 --  CPU PROCESSOR SIMULATION TESTBENCH
 -------------------------------------------------------------------------
@@ -198,7 +297,10 @@ architecture cpu_tb of cpu_tb is
     signal mem_ce :  std_logic;
 
     signal tx_data,rx_data: std_logic_vector (7 downto 0);  
-    signal tx_av,rx_busy, rx_start:  std_logic;                                      
+    signal tx_av,rx_busy, rx_start:  std_logic;
+
+    signal rxd,txd,clkPeriferico:  std_logic;     
+
     
     file ARQ : TEXT open READ_MODE is "textMips2.txt";
  
@@ -206,8 +308,16 @@ begin
     
      Logica_cola: entity work.FsmLogicaCola   
               port map (ce => Dce_n,address=>Dadress, mem_ce=>mem_ce, rw=>rw, clock=>ck, reset=>rstCPU, tx_data=>tx_data,
-      rx_data=>rx_data, tx_av=> tx_av, rx_busy=>rx_busy,rx_start=>rx_start, data => Ddata);
+			rx_data=>rx_data, tx_av=> tx_av, rx_busy=>rx_busy,rx_start=>rx_start, data => Ddata);
     
+    Interface_Serial: entity work.serialinterface
+              port map (clock=>ck,reset=>rstCPU,rxd=>rxd,txd=>txd,rx_data=>rx_data,rx_start=>rx_start,
+                rx_busy => rx_busy,tx_data=>tx_data,tx_av=>tx_av
+                );
+
+   perifericoMap: entity work.periferico
+            port map(clock => clkPeriferico,reset=>rstCPU,rxd=>rxd,txd=>txd);
+
     Data_mem:  entity work.RAM_mem 
                generic map( START_ADDRESS => x"10010000" )
                port map (ce_n=>mem_ce, we_n=>Dwe_n, oe_n=>Doe_n, bw=>bw, address=>Dadress, data=>Ddata);
@@ -215,10 +325,7 @@ begin
     Instr_mem: entity work.RAM_mem 
                generic map( START_ADDRESS => x"00400000" )
                port map (ce_n=>Ice_n, we_n=>Iwe_n, oe_n=>Ioe_n, bw=>'1', address=>Iadress, data=>Idata);
-               
-     rx_busy <= '0' when (Dadress = x"10008004" or  Dadress = x"10008003")  else '1';    
-     tx_av <= '1' when (Dadress = x"10008001")  else '0';   
-     --tx_data <= x"0c"; 
+
    
     -- data memory signals --------------------------------------------------------
     Dce_n <= '0' when (ce='1' and rstCPU/='1') or go_d='1' else '1'; -- Bug corrected here in 16/05/2012
@@ -256,6 +363,11 @@ begin
         wait for 20 ns;
     end process;
 
+    process                          -- generates the clock signal 
+        begin
+        clkPeriferico <= '1', '0' after 4.34 us;
+        wait for 8.68 ns;
+    end process;
     
     ----------------------------------------------------------------------------
     -- this process loads the instruction memory and the data memory during reset
@@ -292,7 +404,7 @@ begin
         while NOT (endfile(ARQ)) loop    -- INCIO DA LEITURA DO ARQUIVO CONTENDO INSTRUO E DADOS -----
             --readline(ARQ, ARQ_LINE);      
             --read(ARQ_LINE, line_arq(1 to  ARQ_LINE'length) );
-        readFileLine(ARQ, line_arq);
+				readFileLine(ARQ, line_arq);
                         
             if line_arq(1 to 12)="Text Segment" then 
                    code:=true;                     -- code 

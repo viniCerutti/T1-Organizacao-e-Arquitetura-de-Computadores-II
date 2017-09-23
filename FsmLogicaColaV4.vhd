@@ -32,6 +32,7 @@ architecture FsmLogicaCola of FsmLogicaCola is
 	signal tx_dataReg, rx_dataReg : std_logic_vector (7 downto 0);
 
 	signal loadRxDataReg, loadTx_dataReg, tx_dado_ja_lido : std_logic := '0';
+	signal valor_tx_av : std_logic;
 
 begin
 	ce_Serial <= '1' when (ce='0' and address >= x"10008000" and address <= x"10008004") else '0';
@@ -60,6 +61,12 @@ begin
        end if;
 	end process; 
 
+	process (clock, tx_av)
+	begin
+		if rising_edge(clock) then 
+		valor_tx_av <= tx_av;
+		end if;
+	end process;
 
 	process (reset, clock)
 	begin
@@ -89,13 +96,13 @@ begin
 							end if;
 						-- leitura do endereço tx_av
 							if (address = x"10008001" and rw = '1') then
-								if(tx_av = '1' and tx_dado_ja_lido = '0') then
-									auxData <= x"00000001";
+								if(tx_dado_ja_lido = '0') then
+									auxData <= x"0000000"&"000"&valor_tx_av;
 									loadTx_dataReg <='1';
 									State_next <=  d;
 								else 
 									tx_dado_ja_lido <= '0';
-									auxData <= x"00000000";
+									auxData <= x"0000000"&"000"&valor_tx_av;
 									State_next <=  a;
 								end if;
 							end if;

@@ -24,6 +24,7 @@ Architecture mySerialTB Of mySerialTB Is
 	Signal memInf : data_memInf := (Others => (Others => '0'));
 	Signal contBitsReceiver, contBitsSend : std_logic_vector (7 Downto 0);
 	Signal contVetor : std_logic_vector (7 Downto 0) := "00000000";
+	signal enviar_dado_sinc : std_logic := '1';
 Begin
 	Process (reset, clock)
 	Begin
@@ -34,7 +35,13 @@ Begin
 		Elsif (clock'EVENT And clock = '1') Then
 			Case State Is
 				When a => 
-					If (contVetor /= x"10") Then
+					If(enviar_dado_sinc ='1') Then
+						contBitsSend <= x"08";
+						txd <= '1';
+						result<= "0101010101";
+						State <= e;
+
+					else If (contVetor /= x"10") Then
 						contBitsReceiver <= x"08";
 						State <= b;
 					Else
@@ -43,6 +50,10 @@ Begin
 						result(0) <= '1';
 						State <= e;
 					End If;
+
+					end if;
+
+					
 				When b => 
 					If (rxd = '0') Then
 						State <= c;
@@ -65,6 +76,10 @@ Begin
 						State <= d;
 					End If;
 				When e => 
+					if(enviar_dado_sinc ='1') Then
+						enviar_dado_sinc <='0';
+					end if;
+
 					If (contBitsSend >= x"01") Then
 						contBitsSend <= contBitsSend - x"01";
 						txd <= result(CONV_INTEGER(contBitsSend));

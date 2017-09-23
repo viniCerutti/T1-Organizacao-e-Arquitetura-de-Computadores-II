@@ -16,7 +16,8 @@ http://www.cim.mcgill.ca/~langer/273/20-notes.pdf<br/>
 
 # O que precisa Fazer
 
-- Criar o VHDL do mapeamento de Periférico <br />
-- Juntar os dois TB (periférico e Memória) <br />
+- ~~Criar o VHDL do mapeamento de Periférico <br />~~
+- ~~Juntar os dois TB (periférico e Memória) <br />~~
+- Debuggar o programa
 - Programa de simulção (.asm) de dados do periférico <br />
 - Documentação do Projeto com formas de ondas <br />

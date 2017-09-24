@@ -112,24 +112,23 @@ begin
 						-- escrita no endereço rx_data
 						if (ce_Serial = '1' and address = x"10008002" and rw = '0') then
 							loadRxDataReg <= '1';
-							
+							rx_start <= '1';
 							State_next <= c;
 						else State_next <= b;
 						end if;
 				when c => 
+						rx_start <='0';
 						-- verificar se aquele dado foi enviado
 						loadRxDataReg <= '0';
 						if (ce_Serial = '1' and address = x"10008004" and rw = '1') then
 							if (rx_busy = '0') then 
 								auxData <= x"00000000";
-								rx_start <='0';
 								State_next <= b;
 							else 
 								auxData <= x"00000001";
 								State_next <=  d;
 							end if;
 						else if (rx_busy = '0') then -- é assim para outras instrucoes?
-								rx_start <='0';
 								State_next <= a;
 							else 
 								State_next <=  c;

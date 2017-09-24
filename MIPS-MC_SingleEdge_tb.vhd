@@ -197,7 +197,7 @@ Architecture periferico Of periferico Is
   Type State_type Is (a, b, c, d, e);
   Signal State : State_type;
 
-  Signal result : std_logic_vector(9 Downto 0);
+  Signal result : std_logic_vector(10 Downto 0);
 
   Type data_memInf Is Array(0 To 1) Of std_logic_vector(7 Downto 0);
   Signal memInf : data_memInf := (Others => (Others => '0'));
@@ -205,19 +205,19 @@ Architecture periferico Of periferico Is
   Signal contVetor : std_logic_vector (7 Downto 0) := "00000000";
   signal enviar_dado_sinc : std_logic := '1';
 Begin
-  Process (reset, clock)
+  Process (reset, clock,rxd)
   Begin
     If (reset = '1') Then
-      result <= "0000000000";
+      result <= "00000000000";
       contVetor<=x"00";
+     
       State <= a;
     Elsif (clock'EVENT And clock = '1') Then
       Case State Is
         When a => 
           If(enviar_dado_sinc ='1') Then
-            contBitsSend <= x"08";
-            txd <= '1';
-            result<= "0101010101";
+            contBitsSend <= x"0A";
+            result<= "10101010101";
             State <= e;
 
           else If (contVetor /= x"10") Then
@@ -239,9 +239,9 @@ Begin
             State <= b; 
           End If;
         When c => 
-          If (contBitsReceiver > 1) Then
-            contBitsReceiver <= contBitsReceiver - x"01";
+          If (contBitsReceiver >= 1) Then
             memInf(CONV_INTEGER(contVetor)) <= rxd & memInf(CONV_INTEGER(contVetor))(7 Downto 1);
+            contBitsReceiver <= contBitsReceiver - x"01";
             State <= c;
           Else
             State <= d;
@@ -256,18 +256,16 @@ Begin
         When e => 
           if(enviar_dado_sinc ='1') Then
             enviar_dado_sinc <='0';
-          end if;
-
+          End If;
           If (contBitsSend >= x"01") Then
-            contBitsSend <= contBitsSend - x"01";
             txd <= result(CONV_INTEGER(contBitsSend));
- 
+            contBitsSend <= contBitsSend - x"01";
             State <= e;
           Else
             txd <= result(CONV_INTEGER(contBitsSend));
             contVetor <= x"00";
             State <= a;
-          End If;
+          end if;        
         When Others => 
           State <= a;
       End Case;
@@ -366,7 +364,7 @@ begin
     process                          -- generates the clock signal 
         begin
         clkPeriferico <= '1', '0' after 4.34 us;
-        wait for 8.68 ns;
+        wait for 8.68 us;
     end process;
     
     ----------------------------------------------------------------------------

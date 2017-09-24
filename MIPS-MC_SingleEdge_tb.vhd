@@ -194,46 +194,51 @@ End periferico;
 
 Architecture periferico Of periferico Is
 
-  Type State_type Is (a, c, d, e);
+  Type State_type Is (a, c, d, e,f);
   Signal State : State_type;
 
-  Signal result : std_logic_vector(10 Downto 0);
+  Signal dadoSync : std_logic_vector(10 Downto 0);
+  Signal result : std_logic_vector(9 Downto 0);
 
   Type data_memInf Is Array(0 To 1) Of std_logic_vector(7 Downto 0);
   Signal memInf : data_memInf := (Others => (Others => '0'));
   Signal contBitsReceiver, contBitsSend : std_logic_vector (7 Downto 0);
   Signal contVetor : std_logic_vector (7 Downto 0) := "00000000";
   signal enviar_dado_sinc : std_logic := '1';
+  signal bug : std_logic_vector (3 Downto 0);
 Begin
   Process (reset, clock,rxd)
   Begin
     If (reset = '1') Then
-      result <= "00000000000";
+      result <= "0000000000";
+      dadoSync <= "00000000000";
       contVetor<=x"00";
     Elsif (clock'EVENT And clock = '1') Then
       Case State Is
         When a => 
-          If(enviar_dado_sinc ='1') Then
+          if(enviar_dado_sinc = '1') Then
             contBitsSend <= x"0A";
-            result<= "10101010101";
-            State <= e;
+            dadoSync <= "10101010101";
+            State <= f;
+            bug <= "0001";
 
-          else If (contVetor /= x"10") Then
-            contBitsReceiver <= x"08";
-            If (rxd = '0') Then
-            State <= c;
-          Else
-            State <= a; 
-          End If;
-          Else
-            contBitsSend <= x"08";
+          elsif (contVetor = x"02") then
+            bug <= "0101";
+            contBitsSend <= x"00";
             result(8 Downto 1) <= memInf(0)(7 Downto 0) + memInf(1)(7 Downto 0);
-            result(0) <= '1';
+            result(9) <= '1';
             State <= e;
-          End If;
 
+          elsif (contVetor /= x"02") Then
+            contBitsReceiver <= x"08";
+            bug <= "0010";
+            If (rxd = '0') Then
+              State <= c;
+              bug <= "0011";
+            else State<=a;
+            bug <= "0100";
+            End if;
           end if;
-          
         When c => 
           If (contBitsReceiver > 1) Then
             memInf(CONV_INTEGER(contVetor)) <= rxd & memInf(CONV_INTEGER(contVetor))(7 Downto 1);
@@ -252,18 +257,27 @@ Begin
             State <= d;
           End If;
         When e => 
-          if(enviar_dado_sinc ='1') Then
-            enviar_dado_sinc <='0';
-          End If;
-          If (contBitsSend >= x"01") Then
+          If (contBitsSend <= x"08") Then
             txd <= result(CONV_INTEGER(contBitsSend));
-            contBitsSend <= contBitsSend - x"01";
+            contBitsSend <= contBitsSend + x"01";
             State <= e;
           Else
             txd <= result(CONV_INTEGER(contBitsSend));
             contVetor <= x"00";
             State <= a;
-          end if;        
+          end if;
+         When f => 
+          if(enviar_dado_sinc ='1') Then
+            enviar_dado_sinc <='0';
+          End If;
+          If (contBitsSend >= x"01") Then
+            txd <= dadoSync(CONV_INTEGER(contBitsSend));
+            contBitsSend <= contBitsSend - x"01";
+            State <= f;
+          Else
+            txd <= dadoSync(CONV_INTEGER(contBitsSend));
+            State <= a;
+          end if;                
         When Others => 
           State <= a;
       End Case;

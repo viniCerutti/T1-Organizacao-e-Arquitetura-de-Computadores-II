@@ -194,7 +194,7 @@ End periferico;
 
 Architecture periferico Of periferico Is
 
-  Type State_type Is (a, b, c, d, e);
+  Type State_type Is (a, c, d, e);
   Signal State : State_type;
 
   Signal result : std_logic_vector(10 Downto 0);
@@ -210,8 +210,6 @@ Begin
     If (reset = '1') Then
       result <= "00000000000";
       contVetor<=x"00";
-     
-      State <= a;
     Elsif (clock'EVENT And clock = '1') Then
       Case State Is
         When a => 
@@ -222,7 +220,11 @@ Begin
 
           else If (contVetor /= x"10") Then
             contBitsReceiver <= x"08";
-            State <= b;
+            If (rxd = '0') Then
+            State <= c;
+          Else
+            State <= a; 
+          End If;
           Else
             contBitsSend <= x"08";
             result(8 Downto 1) <= memInf(0)(7 Downto 0) + memInf(1)(7 Downto 0);
@@ -231,19 +233,15 @@ Begin
           End If;
 
           end if;
-
-        When b => 
-          If (rxd = '0') Then
-            State <= c;
-          Else
-            State <= b; 
-          End If;
+          
         When c => 
-          If (contBitsReceiver >= 1) Then
+          If (contBitsReceiver > 1) Then
             memInf(CONV_INTEGER(contVetor)) <= rxd & memInf(CONV_INTEGER(contVetor))(7 Downto 1);
             contBitsReceiver <= contBitsReceiver - x"01";
             State <= c;
           Else
+            memInf(CONV_INTEGER(contVetor)) <= rxd & memInf(CONV_INTEGER(contVetor))(7 Downto 1);
+            contBitsReceiver <= contBitsReceiver - x"01";
             State <= d;
           End If;
         When d => 

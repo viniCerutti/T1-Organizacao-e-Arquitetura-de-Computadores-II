@@ -33,32 +33,35 @@ architecture FsmLogicaCola of FsmLogicaCola is
 
 	signal loadRxDataReg, loadTx_dataReg, tx_dado_ja_lido : std_logic := '0';
 	signal valor_tx_av : std_logic;
+	signal bug :std_logic_vector (3 downto 0);
 
 begin
 	ce_Serial <= '1' when (ce='0' and address >= x"10008000" and address <= x"10008004") else '0';
 	mem_ce <= '1' when (ce_Serial = '1' or ce='1') else '0';
 
 
-	process (clock) 
+	process (clock,reset) 
 	begin
-      if rising_edge(clock) then 
-            if (reset = '1') then 
-                  rx_dataReg <= x"00"; 
-            elsif (loadRxDataReg = '1') then 
-                  rx_dataReg <= data(7 downto 0); 
-            end if; 
-       end if;
+	if (reset = '1') then 
+        rx_dataReg <= x"00"; 
+    else if rising_edge(clock) then 
+        if (loadRxDataReg = '1') then 
+            rx_dataReg <= data(7 downto 0); 
+        end if; 
+    end if;
+    end if;
 	end process; 
 
-	process (clock) 
+	process (clock,reset) 
 	begin
-      if rising_edge(clock) then 
-            if (reset = '1') then 
-                  tx_dataReg <= x"00"; 
-            elsif (loadTx_dataReg = '1') then 
-                  tx_dataReg <= tx_data; 
-            end if; 
-       end if;
+	 if (reset = '1') then 
+        tx_dataReg <= x"00"; 
+     else if rising_edge(clock) then 
+		if (loadTx_dataReg = '1') then 
+            tx_dataReg <= tx_data; 
+        end if; 
+      end if;
+      end if;
 	end process; 
 
 	process (clock, tx_av)
@@ -71,14 +74,13 @@ begin
 	process (reset, clock)
 	begin
 		if (reset = '1') then
-		auxData <= x"00000000";
 			State <= a;
 		elsif (clock'EVENT and clock = '1') then
 			State <= State_next;
 		end if;
 	end process;
 
-	process (State, ce_Serial,data)
+	process (State, ce_Serial,rw,rx_busy)
 		begin
 			case State is
 				when a => 
@@ -122,15 +124,19 @@ begin
 						loadRxDataReg <= '0';
 						if (ce_Serial = '1' and address = x"10008004" and rw = '1') then
 							if (rx_busy = '0') then 
+								bug <= "0001";
 								auxData <= x"00000000";
 								State_next <= b;
 							else 
+								bug <= "0010";
 								auxData <= x"00000001";
-								State_next <=  d;
+								State_next <=  c;
 							end if;
 						else if (rx_busy = '0') then -- é assim para outras instrucoes?
+								bug <= "0011";
 								State_next <= a;
 							else 
+								bug <= "0100";
 								State_next <=  c;
 							end if;
 						end if;

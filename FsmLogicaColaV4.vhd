@@ -31,7 +31,8 @@ architecture FsmLogicaCola of FsmLogicaCola is
 	signal auxData : std_logic_vector (31 downto 0);
 	signal tx_dataReg, rx_dataReg : std_logic_vector (7 downto 0);
 
-	signal loadRxDataReg, loadTx_dataReg, tx_dado_ja_lido : std_logic := '0';
+	signal loadRxDataReg, loadTx_dataReg : std_logic := '0';
+	signal tx_dado_ja_lido : std_logic := '0';
 	signal valor_tx_av : std_logic;
 	signal bug :std_logic_vector (3 downto 0);
 
@@ -64,11 +65,15 @@ begin
       end if;
 	end process; 
 
-	process (clock, tx_av)
+	process (tx_av,reset,tx_dado_ja_lido)
 	begin
-		if rising_edge(clock) then 
-		valor_tx_av <= tx_av;
-		end if;
+	 if (reset = '1') then 
+        valor_tx_av <= '0'; 
+	elsif(tx_av = '1') then
+	valor_tx_av <= '1';
+	elsif (tx_dado_ja_lido = '1') then
+	valor_tx_av <= '0';
+	end if;
 	end process;
 
 	process (reset, clock)
@@ -85,6 +90,7 @@ begin
 			case State is
 				when a => 
 					rx_start <= '0';
+					tx_dado_ja_lido <= '0';
 						if (ce_Serial ='1') then -- que dizer que não estou mexendo com a memoria e sim com periferico
 						-- leitura do endereço rx_busy
 							if (address = x"10008004" and rw = '1') then
@@ -98,12 +104,11 @@ begin
 							end if;
 						-- leitura do endereço tx_av
 							if (address = x"10008001" and rw = '1') then
-								if(tx_dado_ja_lido = '0') then
+								if(valor_tx_av = '1') then
 									auxData <= x"0000000"&"000"&valor_tx_av;
 									loadTx_dataReg <='1';
 									State_next <=  d;
 								else 
-									tx_dado_ja_lido <= '0';
 									auxData <= x"0000000"&"000"&valor_tx_av;
 									State_next <=  a;
 								end if;
@@ -144,11 +149,15 @@ begin
 					-- Leitura no endereço tx_data
 						 if (ce_Serial = '1' and address = x"10008000" and rw = '1') then
 						 		loadTx_dataReg <='0';
+						 		if(tx_dataReg(7) = '1') then
+						 		auxData <= x"FFFFFF"&tx_dataReg;
+						 		else
 						 		auxData <= x"000000"&tx_dataReg;
+						 		end if;
 						 		tx_dado_ja_lido <= '1'; 
 						 		State_next <= a;	  			 
 						 else 
-						 	State_next <= c;					  
+						 	State_next <= d;					  
 						 end if;
 				when others => 
 							State_next <= a;

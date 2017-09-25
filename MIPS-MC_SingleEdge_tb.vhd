@@ -176,6 +176,7 @@ begin
 end RAM_mem;
 -------------------------------------------------------------------------
 --  peripheral module
+--  periferico trabalha na velocidade de 
 -------------------------------------------------------------------------
 
 Library ieee;
@@ -373,7 +374,7 @@ begin
         wait for 20 ns;
     end process;
 
-    process                          -- generates the clock signal 
+    process                          -- generates the clock signal for peripheral
         begin
         clkPeriferico <= '1', '0' after 4.34 us;
         wait for 8.68 us;

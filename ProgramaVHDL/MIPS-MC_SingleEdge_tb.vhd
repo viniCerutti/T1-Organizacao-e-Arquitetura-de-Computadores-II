@@ -175,6 +175,13 @@ begin
 
 end RAM_mem;
 -------------------------------------------------------------------------
+-----------------------------------------
+-- Autores: Vinicius Cerutti e Yuri Bittencourt
+-- Disciplina: Organização e arquitetura de Computadores II 
+
+-- T1 - Comunicação Serial Periférico-Processador
+-- Parte do Periferico
+-----------------------------------------
 --  peripheral module
 --  periferico trabalha na velocidade de 115200 bits por segundo
 -------------------------------------------------------------------------

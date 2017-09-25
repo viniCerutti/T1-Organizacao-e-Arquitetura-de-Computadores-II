@@ -1,3 +1,11 @@
+-----------------------------------------
+-- Autores: Vinicius Cerutti e Yuri Bittencourt
+-- Disciplina: Organização e arquitetura de Computadores II 
+
+-- T1 - Comunicação Serial Periférico-Processador
+-- Parte da lógica de cola que tem como objetivo de mapear os
+-- endereços do periferico junto com os da mémoria
+-----------------------------------------
 library ieee;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_unsigned.all; 

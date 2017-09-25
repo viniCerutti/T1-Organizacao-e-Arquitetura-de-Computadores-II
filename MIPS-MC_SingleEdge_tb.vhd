@@ -176,7 +176,7 @@ begin
 end RAM_mem;
 -------------------------------------------------------------------------
 --  peripheral module
---  periferico trabalha na velocidade de 
+--  periferico trabalha na velocidade de 115200 bits por segundo
 -------------------------------------------------------------------------
 
 Library ieee;
@@ -204,42 +204,43 @@ Architecture periferico Of periferico Is
   Type data_memInf Is Array(0 To 1) Of std_logic_vector(7 Downto 0);
   Signal memInf : data_memInf := (Others => (Others => '0'));
   Signal contBitsReceiver, contBitsSend : std_logic_vector (7 Downto 0);
-  Signal contVetor : std_logic_vector (7 Downto 0) := "00000000";
+  Signal contVetor : std_logic_vector (7 Downto 0);
   signal enviar_dado_sinc : std_logic := '1';
-  signal bug : std_logic_vector (3 Downto 0);
+
 Begin
   Process (reset, clock,rxd)
   Begin
     If (reset = '1') Then
       result <= "0000000000";
       dadoSync <= "00000000000";
+      contBitsSend <= "00000000";
+      contBitsReceiver <= "00000000";
       contVetor<=x"00";
     Elsif (clock'EVENT And clock = '1') Then
       Case State Is
         When a => 
+          -- envia dado 0x55 para sicronizacao com a interface serial
           if(enviar_dado_sinc = '1') Then
             contBitsSend <= x"0A";
             dadoSync <= "10101010101";
             State <= f;
-            bug <= "0001";
-
+          -- os dois dados estao recebidos logo devem ser somados e 
+          -- madandos para o periferico
           elsif (contVetor = x"02") then
-            bug <= "0101";
             contBitsSend <= x"00";
             result(8 Downto 1) <= memInf(0)(7 Downto 0) + memInf(1)(7 Downto 0);
             result(9) <= '1';
             State <= e;
-
+          -- se ainda nao recebeu os dois valores para realizar a soma
           elsif (contVetor /= x"02") Then
             contBitsReceiver <= x"08";
-            bug <= "0010";
+            -- verifica se o primeiro bit é start bit
             If (rxd = '0') Then
               State <= c;
-              bug <= "0011";
             else State<=a;
-            bug <= "0100";
             End if;
           end if;
+          -- estado que realiza o recebimento dos bits da interface serial
         When c => 
           If (contBitsReceiver > 1) Then
             memInf(CONV_INTEGER(contVetor)) <= rxd & memInf(CONV_INTEGER(contVetor))(7 Downto 1);
@@ -250,6 +251,7 @@ Begin
             contBitsReceiver <= contBitsReceiver - x"01";
             State <= d;
           End If;
+        -- estado que verifica se existe o stop bit
         When d => 
           If (rxd /= '0') Then
             contVetor <= contVetor + x"01";
@@ -257,6 +259,8 @@ Begin
           Else
             State <= d;
           End If;
+        -- estado para enviar os dados do periferico para
+        -- interface serial
         When e => 
           If (contBitsSend <= x"08") Then
             txd <= result(CONV_INTEGER(contBitsSend));
@@ -267,6 +271,8 @@ Begin
             contVetor <= x"00";
             State <= a;
           end if;
+        -- estado para enviar o dado de sicronizacao(0x55) para 
+        -- a interface serial
          When f => 
           if(enviar_dado_sinc ='1') Then
             enviar_dado_sinc <='0';

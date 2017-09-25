@@ -61,11 +61,11 @@ loop_tvav01:
 	li	$t4,0x10008000			#  carrega o endereco de tx_data
 	lbu	$t4, 0($t4)			#  realiza a leitura de tx_data		   
 	la	$t5,result			
-	sw	$t5,0($t4)			# guarda o valor de tx_data em result
+	sb	$t4,0($t5)			# guarda o valor de tx_data em result
 									
 fim:	
 	j 	fim
 .data
-dado1: .word 10
-dado2: .word 30
-result: .word 0
+dado1: .byte 10
+dado2: .byte 30
+result: .byte 0

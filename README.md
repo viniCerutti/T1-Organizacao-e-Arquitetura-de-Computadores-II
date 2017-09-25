@@ -14,10 +14,10 @@ http://www.cim.mcgill.ca/~langer/273/20-notes.pdf<br/>
 0x10008003 - rx_start <br />
 0x10008004 - rx_busy <br />
 
-# O que precisa Fazer
+# O que foi feito
 
-- ~~Criar o VHDL do mapeamento de Periférico <br />~~
-- ~~Juntar os dois TB (periférico e Memória) <br />~~
+- Criar o VHDL do mapeamento de Periférico <br />
+- Juntar os dois TB (periférico e Memória) <br />
 - Debuggar o programa
 - Programa de simulção (.asm) de dados do periférico <br />
 - Documentação do Projeto com formas de ondas <br />

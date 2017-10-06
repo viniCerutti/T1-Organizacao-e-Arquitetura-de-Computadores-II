@@ -19,11 +19,11 @@ Os arquivos relacionados à interface serial e ao MIPS foram criados pelos profe
 * LogicaDeCola.vhd - Implementação do hardware que liga a CPU com a interface Serial
 #### Ordem do endereçamento do Driver na memória ####
 
-        0x10008000 - Tx_Data <br />
-        0x10008001 - tx_av <br />
-        0x10008002 - rx_data <br />
-        0x10008003 - rx_start <br />
-        0x10008004 - rx_busy <br />
+        0x10008000 - Tx_Data
+        0x10008001 - tx_av
+        0x10008002 - rx_data
+        0x10008003 - rx_start
+        0x10008004 - rx_busy
 
 * MIPS-MC_SingleEdge.vhd - Implementação da CPU MIPS Multiciclo
 * MIPS-MC_SingleEdge_tb.vhd - Implementação do arquivo Testbench do MIPS, Lógica de cola e Periferico

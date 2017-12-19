@@ -5,11 +5,11 @@ Trabalho I da Disciplina Organização e Arquitetura de Computadores II - 2017/2
   <img src="https://github.com/viniCerutti/T1-Organizacao-e-Arquitetura-de-Computadores-II/blob/master/Documentacao/modelagemT1.png">
 </p>
 
-# Autores #
+## Autores ##
 Vinicius Cerutti<br/>
 Yuri Bittencourt<br/>
 Os arquivos relacionados à interface serial e ao MIPS foram criados pelos professores [Ney Calazans](http://www.inf.pucrs.br/calazans/) e [Fernando Moraes](https://www.inf.pucrs.br/moraes/).
-# Sobre os Arquivos
+## Sobre os Arquivos ##
  ### Documentacao(Pasta) ###
  Pasta que contem todas os arquivos para gerar o pdf da documentação do programa
  ### MaterialDeAuxilo(Pasta) ###
@@ -37,7 +37,7 @@ Os arquivos relacionados à interface serial e ao MIPS foram criados pelos profe
  ### TP1_OrgArqCompII_CC_2017_1 (arquivo docx) ###
  Enunciado do trabalho.
 
-# Programa para realizar as formas de ondas e testes #
+## Programa para realizar as formas de ondas e testes ##
 [ModelSim](https://www.altera.com/products/design-software/model---simulation/modelsim-altera-software.html) - Intel FPGA Starte Edition 10.5c
 
 ## Links Úteis ##

@@ -1,5 +1,5 @@
 # Descrição #
-Trabalho I da Disciplina Organização e Arquitetura de Computadores II - 2017/2 PUCRS. O trabalho possui o objetivo de desenvolver a parte de comunição (Lógica de Cola) entre a CPU(MIPS) com o periferico e o  também o desenvolvimento do periferico.
+Trabalho I da Disciplina Organização e Arquitetura de Computadores II - 2017/2. O trabalho possui o objetivo de desenvolver a parte de comunição (Lógica de Cola) entre a CPU(MIPS) com o periferico e o  também o desenvolvimento do periferico.
 ## Imagem da Implementação ##
 <p align="center">
   <img src="https://github.com/viniCerutti/T1-Organizacao-e-Arquitetura-de-Computadores-II/blob/master/Documentacao/modelagemT1.png">

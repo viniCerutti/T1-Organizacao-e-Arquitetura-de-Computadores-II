@@ -1,5 +1,5 @@
 # Descrição #
-Trabalho I da Disciplina Organização e Arquitetura de Computadores II - 2017/2. Desenvolvimento da comunição entre a CPU (MIPS) com o periférico e o o próprio periférico.
+Trabalho I da Disciplina Organização e Arquitetura de Computadores II - 2017/2. Desenvolvimento de um periférico e da comunição com a CPU (MIPS).
 ## Imagem da Implementação ##
 <p align="center">
   <img src="https://github.com/viniCerutti/T1-Organizacao-e-Arquitetura-de-Computadores-II/blob/master/Documentacao/modelagemT1.png">

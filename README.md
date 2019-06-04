@@ -1,13 +1,10 @@
 # Descrição #
-Trabalho I da Disciplina Organização e Arquitetura de Computadores II - 2017/2. O trabalho possui o objetivo de desenvolver a parte de comunição (Lógica de Cola) entre a CPU(MIPS) com o periferico e o  também o desenvolvimento do periferico.
+Trabalho I da Disciplina Organização e Arquitetura de Computadores II - 2017/2. Desenvolvimento da comunição entre a CPU (MIPS) com o periférico e o o próprio periférico.
 ## Imagem da Implementação ##
 <p align="center">
   <img src="https://github.com/viniCerutti/T1-Organizacao-e-Arquitetura-de-Computadores-II/blob/master/Documentacao/modelagemT1.png">
 </p>
 
-## Autores ##
-Vinicius Cerutti<br/>
-Yuri Bittencourt<br/>
 Os arquivos relacionados à interface serial e ao MIPS foram criados pelos professores [Ney Calazans](http://www.inf.pucrs.br/calazans/) e [Fernando Moraes](https://www.inf.pucrs.br/moraes/).
 ## Sobre os Arquivos ##
  ### Documentacao(Pasta) ###
@@ -27,7 +24,7 @@ Os arquivos relacionados à interface serial e ao MIPS foram criados pelos profe
 
 * MIPS-MC_SingleEdge.vhd - Implementação da CPU MIPS Multiciclo
 * MIPS-MC_SingleEdge_tb.vhd - Implementação do arquivo Testbench do MIPS, Lógica de cola e Periferico
-* MipsPerifericoSoftware.asm - Descrição em ASsembly do programa para executar no MIPS que faz o envio e recebimento de dados do periferico
+* MipsPerifericoSoftware.asm - Descrição em ASsembly do programa para executar no MIPS que faz o envio e recebimento de dados do periférico.
 * mult_div.vhd - Implementação da operações multiplicação e Divisão do Mips
 * serialinterface.vhd - Implementação da interface Serial que faz ligação entre o periferico e a logica de cola
 * textMips2.txt  - Arquivo para ser executado no TB do MIPS, que possui as instruções em Hexadecimal.
